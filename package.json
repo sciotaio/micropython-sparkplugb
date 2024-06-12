@@ -1,0 +1,12 @@
+{
+    "urls": [
+        ["sparkplugb/edge_node.py", "github:sciotaio/micropython-sparkplugb/sparkplugb/edge_node.py"],
+        ["sparkplugb/payload.py", "github:sciotaio/micropython-sparkplugb/sparkplugb/payload.py"]
+    ],
+    "deps": [
+        ["logging", "latest"],
+        ["bisect", "latest"],
+        ["github:dogtopus/minipb/minipb.py", "master"]
+    ],
+    "version": "0.1.0"
+}
