@@ -138,6 +138,10 @@ string_type = DataType.String
 dataset_type = DataType.DataSet
 ```
 
+#### Notes
+
+When using the `DateTime` datatype for a metric, the value provided should be a timestamp in milliseconds since the epoch (January 1, 1970). Similarly, when using the `DateTimeArray` datatype, the value should be a list of timestamps in milliseconds since the epoch. Also, when a command metric is received with one of these datatypes, the value will be a (array of) timestamp(s) in milliseconds since the epoch. Note that some platforms (e.g. the ESP32) use a different epoch, so make sure to adjust the timestamps accordingly when using them in your application code.
+
 ### <code><i>class</i> sparkplugb.payload.DataSet(<i>columns: list[str], types: list</i>)</code>
 
 Objects of this class can be used as a value for DataSet metrics. (See [example](#usage-example).)
@@ -199,7 +203,7 @@ To comply with the Report-By-Exception (RBE) principle of the Sparkplug B specif
 ### Limitations
 
 Some features of the Sparkplug B specification are not (yet) implemented in this library. These include:
-- Some datatypes/properties for metrics: The Protobuf schema from the Sparkplug B Specification is not yet fully implemented, but the most common datatypes are and completing the schema would be fairly straightforward (feel free to open an issue or a pull request). The following is still missing: Metadata and Properties for metrics, template metrics, array metric values.
+- Some datatypes/properties for metrics: The Protobuf schema from the Sparkplug B Specification is not yet fully implemented, but the most common datatypes are and completing the schema would be fairly straightforward (feel free to open an issue or a pull request). The following is still missing: Metadata and Properties for metrics, template metrics.
 - Devices (with their own metrics) that can be assigned to an Edge Node, currently all metrics are assumed to be part of the Edge Node and their values are sent in NBIRTH/NDATA messages (no support for DBIRTH/DDEATH/DDATA messages)
 - Connecting to a cluster of MQTT brokers
 

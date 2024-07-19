@@ -4,6 +4,7 @@
 import time
 import minipb
 import json
+import struct
 
 
 _datasetvalue_schema = (
@@ -143,7 +144,53 @@ def _get_metric_value(metric):
     elif datatype == DataType.File:
         return metric['bytes_value']
     # TODO: elif datatype == DataType.Template:
-
+    elif datatype == DataType.Int8Array:
+        received_bytes = metric['bytes_value']
+        return struct.unpack('<{}{}'.format(len(received_bytes), 'b'), received_bytes)
+    elif datatype == DataType.Int16Array:
+        received_bytes = metric['bytes_value']
+        return struct.unpack('<{}{}'.format(len(received_bytes) // 2, 'h'), received_bytes)
+    elif datatype == DataType.Int32Array:
+        received_bytes = metric['bytes_value']
+        return struct.unpack('<{}{}'.format(len(received_bytes) // 4, 'i'), received_bytes)
+    elif datatype == DataType.Int64Array:
+        received_bytes = metric['bytes_value']
+        return struct.unpack('<{}{}'.format(len(received_bytes) // 8, 'q'), received_bytes)
+    elif datatype == DataType.UInt8Array:
+        received_bytes = metric['bytes_value']
+        return struct.unpack('<{}{}'.format(len(received_bytes), 'B'), received_bytes)
+    elif datatype == DataType.UInt16Array:
+        received_bytes = metric['bytes_value']
+        return struct.unpack('<{}{}'.format(len(received_bytes) // 2, 'H'), received_bytes)
+    elif datatype == DataType.UInt32Array:
+        received_bytes = metric['bytes_value']
+        return struct.unpack('<{}{}'.format(len(received_bytes) // 4, 'I'), received_bytes)
+    elif datatype == DataType.UInt64Array:
+        received_bytes = metric['bytes_value']
+        return struct.unpack('<{}{}'.format(len(received_bytes) // 8, 'Q'), received_bytes)
+    elif datatype == DataType.FloatArray:
+        received_bytes = metric['bytes_value']
+        return struct.unpack('<{}{}'.format(len(received_bytes) // 4, 'f'), received_bytes)
+    elif datatype == DataType.DoubleArray:
+        received_bytes = metric['bytes_value']
+        return struct.unpack('<{}{}'.format(len(received_bytes) // 8, 'd'), received_bytes)
+    elif datatype == DataType.BooleanArray:
+        received_bytes = metric['bytes_value']
+        # unpack the 4-byte integer representing the number of boolean values
+        boolean_count, = struct.unpack("<I", received_bytes[:4])
+        # unpack the rest of the bytes into a list of boolean values
+        bits = ''.join(f'{byte:08b}' for byte in received_bytes[4:])[:boolean_count]
+        return [bool(int(bit)) for bit in bits]
+    elif datatype == DataType.StringArray:
+        received_bytes = metric['bytes_value']
+        return received_bytes.decode('utf-8').split('\0')[:-1]
+    elif datatype == DataType.DateTimeArray:
+        received_bytes = metric['bytes_value']
+        return struct.unpack('<{}{}'.format(len(received_bytes) // 8, 'q'), received_bytes)
+    else:
+        print(f"Unsupported datatype: {datatype}\nValue not returned.")
+        return None
+    
 def _fill_empty_fields_with_none(data, schema):
     for (key, *_) in schema:
         if key not in data:
@@ -275,10 +322,39 @@ class _Payload:
             metric['bytes_value'] = value
         elif datatype == DataType.File:
             metric['bytes_value'] = value
-        # elif datatype == DataType.Template:
-            # TODO: Implement
-            # pass
-        # TODO Array types
+        # TODO: elif datatype == DataType.Template:
+        elif datatype == DataType.Int8Array:
+            metric['bytes_value'] = struct.pack('<{}{}'.format(len(value), 'b'), *value)
+        elif datatype == DataType.Int16Array:
+            metric['bytes_value'] = struct.pack('<{}{}'.format(len(value), 'h'), *value)
+        elif datatype == DataType.Int32Array:
+            metric['bytes_value'] = struct.pack('<{}{}'.format(len(value), 'i'), *value)
+        elif datatype == DataType.Int64Array:
+            metric['bytes_value'] = struct.pack('<{}{}'.format(len(value), 'q'), *value)
+        elif datatype == DataType.UInt8Array:
+            metric['bytes_value'] = struct.pack('<{}{}'.format(len(value), 'B'), *value)
+        elif datatype == DataType.UInt16Array:
+            metric['bytes_value'] = struct.pack('<{}{}'.format(len(value), 'H'), *value)
+        elif datatype == DataType.UInt32Array:
+            metric['bytes_value'] = struct.pack('<{}{}'.format(len(value), 'I'), *value)
+        elif datatype == DataType.UInt64Array:
+            metric['bytes_value'] = struct.pack('<{}{}'.format(len(value), 'Q'), *value)
+        elif datatype == DataType.FloatArray:
+            metric['bytes_value'] = struct.pack('<{}{}'.format(len(value), 'f'), *value)
+        elif datatype == DataType.DoubleArray:
+            metric['bytes_value'] = struct.pack('<{}{}'.format(len(value), 'd'), *value)
+        elif datatype == DataType.BooleanArray:
+            # pack the number of boolean values into a 4-byte integer
+            boolean_count_bytes = struct.pack("<I", len(value))
+            # pack the boolean values into bytes
+            binary_string = ''.join(str(int(b)) for b in value)
+            binary_string_padded = ''.join((binary_string, '0' * (8 * ((len(binary_string) + 7) // 8) - len(binary_string))))
+            boolean_values_bytes = bytes(int(binary_string_padded[i:i+8], 2) for i in range(0, len(binary_string_padded), 8))
+            metric['bytes_value'] = boolean_count_bytes + boolean_values_bytes
+        elif datatype == DataType.StringArray:
+            metric['bytes_value'] = '\0'.join(value).encode('utf-8') + '\0'
+        elif datatype == DataType.DateTimeArray:
+            metric['bytes_value'] = struct.pack('<{}{}'.format(len(value), 'q'), *value)
         else:
             print(f"Unsupported datatype: {datatype}\nMetric not added.")
             return
