@@ -104,8 +104,13 @@ class DataType:
     StringArray = 33
     DateTimeArray = 34
 
-def _get_metric_value(metric):
-    datatype = metric['datatype']
+def _get_metric_value(metric, datatype=None):
+    if 'datatype' in metric:
+        datatype = metric['datatype']
+    
+    if datatype is None:
+        print("Datatype not provided.\nValue could not be returned.")
+        return None
     
     if datatype == DataType.Int8:
         return metric['int_value']

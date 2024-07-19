@@ -16,7 +16,7 @@ class SparkplugBEdgeNode:
         self.bdSeq_file = bdSeq_file
         self.bdSeq = self._load_bdSeq()
         self.seq = 0
-        self.metrics = {}
+        self.metrics = {} # A dictionary of metric names to tuples of datatype and value
         self.commands = {
             "Node Control/Rebirth": lambda value: self._publish_nbirth() if value and self.sparkplug_session_established else None
         }
@@ -110,7 +110,7 @@ class SparkplugBEdgeNode:
         payload = spb._decode_payload(msg)
         for metric in payload['metrics']:
             name = metric['name']
-            value = spb._get_metric_value(metric)
+            value = spb._get_metric_value(metric, self.metrics[name][0] if name in self.metrics else None)
             self._debug(f"Executing command {name} with value {value}")
             if name in self.commands:
                 self.commands[name](value)
