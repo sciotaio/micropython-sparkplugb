@@ -6,6 +6,7 @@ import asyncio
 
 class SparkplugBEdgeNode:
     def __init__(self, mqtt_client, group_id: str, edge_node_id: str, primary_host_application_id: str = None, bdSeq_file: str = "bdSeq", debug: bool = False):
+        self.debug = debug
         self.client = mqtt_client
         self.connected = False
         self.group_id = group_id
@@ -20,7 +21,6 @@ class SparkplugBEdgeNode:
         self.commands = {
             "Node Control/Rebirth": lambda value: self._publish_nbirth() if value and self.sparkplug_session_established else None
         }
-        self.debug = debug
         
     def _debug(self, msg):
         if self.debug:
