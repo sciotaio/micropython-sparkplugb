@@ -154,6 +154,15 @@ class SparkplugBEdgeNode:
             await asyncio.sleep(interval / 2)
             if self.connected:
                 self.client.ping()
+                
+    def _are_values_equal(self, value1, value2):
+        if value1 == value2:
+            return True
+        if type(value1) != type(value2):
+            return False
+        if isinstance(value1, float):
+            return abs(value1 - value2) < 0.00001
+        return False
 
     def connect(self):
         self._increment_bdSeq()
@@ -196,7 +205,7 @@ class SparkplugBEdgeNode:
             print(f"Metric {name} does not exist. Not setting value.")
             return
         
-        if self.metrics[name][1] == value:
+        if self._are_values_equal(value, self.metrics[name][1]):
             # The metric value did not change so no need to update (Report by exception)
             return
         

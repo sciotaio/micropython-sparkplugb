@@ -105,12 +105,12 @@ class DataType:
     DateTimeArray = 34
 
 def _get_metric_value(metric, datatype=None):
-    if 'datatype' in metric:
+    if 'datatype' in metric and metric['datatype'] is not None:
         datatype = metric['datatype']
     
     if datatype is None:
         print("Datatype not provided.\nValue could not be returned.")
-        return None
+        raise ValueError("Datatype not provided.")
     
     if datatype == DataType.Int8:
         return metric['int_value']
@@ -266,6 +266,14 @@ class DataSet:
             'types': self.types,
             'rows': self.rows
         }, _dataset_schema)
+        
+    def __eq__(self, other):
+        if not isinstance(other, DataSet):
+            return False
+        return self._get_dict() == other._get_dict() # Rows need to be in the same order and have the same values
+    
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 # The ESP32 (and probably some other platforms) use a different epoch year (2000)
 _epoch_year = time.gmtime(0)[0]
