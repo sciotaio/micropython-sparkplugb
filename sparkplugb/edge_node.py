@@ -17,7 +17,7 @@ class SparkplugBEdgeNode:
         self.bdSeq_file = bdSeq_file
         self.bdSeq = self._load_bdSeq()
         self.seq = 0
-        self.metrics = {} # A dictionary of metric names to tuples of datatype and value
+        self.metrics = { "Node Control/Rebirth": (spb.DataType.Boolean, False) } # A dictionary of metric names to tuples of datatype and value
         self.commands = {
             "Node Control/Rebirth": lambda value: self._publish_nbirth() if value and self.sparkplug_session_established else None
         }
@@ -69,7 +69,6 @@ class SparkplugBEdgeNode:
     def _get_nbirth_payload(self):
         payload = spb._Payload(seq=self.seq)
         payload.add_metric("bdSeq", spb.DataType.Int64, self.bdSeq)
-        payload.add_metric("Node Control/Rebirth", spb.DataType.Boolean, False)
 
         for name, (datatype, value) in self.metrics.items():
             payload.add_metric(name, datatype, value)
