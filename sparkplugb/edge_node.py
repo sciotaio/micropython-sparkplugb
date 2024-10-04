@@ -46,6 +46,9 @@ class SparkplugBEdgeNode:
     def _increment_seq(self):
         self.seq = (self.seq + 1) % 256
 
+    def _reset_seq(self):
+        self.seq = 0        
+
     def _get_nbirth_topic(self):
         return f"spBv1.0/{self.group_id}/NBIRTH/{self.edge_node_id}"
 
@@ -85,6 +88,7 @@ class SparkplugBEdgeNode:
         return spb._encode_payload(payload)
 
     def _publish_nbirth(self):
+        self._reset_seq()
         self.client.publish(self._get_nbirth_topic(), self._get_nbirth_payload(), qos=0, retain=False)
         self._increment_seq()
 
